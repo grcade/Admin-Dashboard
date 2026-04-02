@@ -1,44 +1,58 @@
 import { Image } from "lucide-react";
-import { addProduct, updateProduct } from "../store/features/productSlice";
-import { useState } from "react";
-import Products from "../pages/Products";
-import { useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { useCreateProductMutation, useUpdateProductMutation } from "../store/dashboardApi";
 
 export default function AddProductForm({
   setShowAddForm,
   editingProduct = null,
 }) {
   const [product, setProduct] = useState({
-    id: 0,
     name: "",
     price: 10.0,
     stock: 0,
-    category: "T-Shirts",
-    status: "In Stock",
+    category: "T-shirts",
+    status: "in stock",
+    description: ""
   });
+
+  const [createProduct] = useCreateProductMutation();
+  const [updateProduct] = useUpdateProductMutation();
+
+  useEffect(() => {
+    if (editingProduct) {
+      setProduct({
+        name: editingProduct.name,
+        price: editingProduct.price,
+        stock: editingProduct.stock,
+        category: editingProduct.category,
+        status: editingProduct.status,
+        description: editingProduct.description || ""
+      });
+    }
+  }, [editingProduct]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProduct((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === 'price' || name === 'stock' ? Number(value) : value,
     }));
   };
 
-  const dispatch = useDispatch();
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editingProduct) {
-      // Dispatch the updateProduct action with the product ID and updated fields
-      dispatch(updateProduct({ id: editingProduct.id, updates: product }));
-    } else {
-      // Dispatch the addProduct action for new products
-      dispatch(addProduct(product));
+    try {
+      if (editingProduct) {
+        await updateProduct({ id: editingProduct.id, ...product }).unwrap();
+      } else {
+        await createProduct(product).unwrap();
+      }
+      setShowAddForm(false);
+    } catch (err) {
+      console.error('Failed to save product:', err);
+      alert('Failed to save product');
     }
-
-    setShowAddForm(false);
   };
   return (
     <div

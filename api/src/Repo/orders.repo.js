@@ -1,7 +1,12 @@
 import { db } from '../Utils/db.js';
 
-export function getAllOrders() {
-    return db.prepare('SELECT * FROM orders').all();
+export function getAllOrders(limit, offset) {
+    const orders = db.prepare('SELECT * FROM orders ORDER BY date DESC LIMIT ? OFFSET ? ').all(limit, offset);
+
+    const totalOrders = db.prepare('SELECT COUNT(*) as count FROM orders').get();
+
+
+    return { orders, totalOrders };
 }
 
 export function getOrderById(id) {
@@ -17,6 +22,11 @@ export function createOrder({ customer_email, amount, date, quantity, items, sta
 export function updateOrder(id, { customer_email, amount, date, quantity, items, status }) {
     const stmt = db.prepare('UPDATE orders SET customer_email=?, amount=?, date=?, quantity=?, items=?, status=? WHERE id=?');
     return stmt.run(customer_email, amount, date, quantity, items, status, id).changes;
+}
+
+export function updateOrderStatus(id, status) {
+    const stmt = db.prepare('UPDATE orders SET status=? WHERE id=?');
+    return stmt.run(status, id).changes;
 }
 
 export function deleteOrder(id) {

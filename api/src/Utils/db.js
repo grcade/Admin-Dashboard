@@ -1,15 +1,21 @@
 
 import Database from 'better-sqlite3';
-const db = new Database('dashboard.db', { verbose: console.log });
+const db = new Database('dashboard.db');
 
 function initializeDatabase() {
-
     db.exec(`
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT NOT NULL UNIQUE,
-            role TEXT NOT NULL
+            role TEXT NOT NULL,
+            phone TEXT,
+            address TEXT,
+            zip_code TEXT,
+            registration_date TEXT,
+            status TEXT,
+            total_orders INTEGER DEFAULT 0,
+            total_amount_spent REAL DEFAULT 0
         );
     `);
 

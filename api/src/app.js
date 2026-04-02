@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import {  initializeDatabase } from './Utils/db.js';
+import routes from './Routes/index.js';
 
 const app = express();
 
@@ -8,9 +9,9 @@ app.use(cors());
 app.use(express.json());
 initializeDatabase()
 
+app.use('/api', routes);
 
-
-app.get('/api', (req, res) => {
+app.get('/api/test', (req, res) => {
     res.json({ message: 'Hello from the API!' });
 });
 

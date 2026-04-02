@@ -1,7 +1,10 @@
 import { db } from '../Utils/db.js';
 
-export function getAllProducts() {
-    return db.prepare('SELECT * FROM products').all();
+
+export function getAllProducts({ offset = 0, limit = 10 } = {}) {
+    const data = db.prepare('SELECT * FROM products ORDER BY id LIMIT ? OFFSET ?').all(limit, offset);
+    const total = db.prepare('SELECT COUNT(*) as count FROM products').get().count;
+    return { data, total };
 }
 
 export function getProductById(id) {
@@ -21,4 +24,10 @@ export function updateProduct(id, { name, description, price, stock, category, s
 
 export function deleteProduct(id) {
     return db.prepare('DELETE FROM products WHERE id=?').run(id).changes;
+}
+
+export const getProductCategoriesRepo = () => {
+    const categories = db.prepare('SELECT DISTINCT category FROM products').all();
+
+    return categories;
 }

@@ -1,12 +1,16 @@
 import { useDispatch, useSelector } from "react-redux";
 import { setFilters, updateFilters } from "../store/features/productSlice";
+import { useProductCategoriesQuery } from "../store/dashboardApi";
+
 
 
 
 const FilterPanel = ({ setShowFilterPanel }) => {
     const dispatch = useDispatch();
     const { filters } = useSelector(state => state.product);
+    const { data } = useProductCategoriesQuery();
 
+    const categories = data?.categories || [];
 
     const handleFilter = (key, value) => {
         dispatch(updateFilters({ [key]: value }))
@@ -16,7 +20,7 @@ const FilterPanel = ({ setShowFilterPanel }) => {
 
 
     return (
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 z-10">
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Filters</h3>
                 <button onClick={() => setShowFilterPanel(false)}>❌</button>
@@ -33,11 +37,11 @@ const FilterPanel = ({ setShowFilterPanel }) => {
                 >
                     {/* ... options ... */}
                     <option value="all">All</option>
-                    <option value="T-shirts">T-shirts</option>
-                    <option value="Jeans">Jeans</option>
-                    <option value="Jacket">Jacket</option>
-                    <option value="Sweatshirts">Sweatshirts</option>
-                    <option value="Shoes">Shoes</option>
+                    {categories.map((category) => (
+                        <option key={category} value={category}>
+                            {category}
+                        </option>
+                    ))}
                 </select>
             </div>
 

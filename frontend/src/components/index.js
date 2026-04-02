@@ -1,6 +1,6 @@
-import  Header  from "./Header/Header";
-import  Sidebar  from "./Sidebar/Sidebar";
-import  Container  from "./container/Container";
+import Header from "./Header/Header";
+import Sidebar from "./Sidebar/Sidebar";
+import Container from "./container/Container";
 import Card from "./Card";
 import BasicTable from "./BasicTable";
 import AddProductForm from "./AddProductForm";
@@ -8,8 +8,10 @@ import FilterPanel from "./FilterPanel";
 import Details from "./Details";
 import CustDetails from "./CustDetails";
 
+import PaginationBar from "./PaginationBar";
 
-export  {
+
+export {
     Header,
     Sidebar,
     Container,
@@ -19,6 +21,8 @@ export  {
     FilterPanel,
     Details,
     CustDetails,
+
+    PaginationBar,
 
 
 }

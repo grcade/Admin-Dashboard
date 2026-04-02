@@ -2,13 +2,14 @@ import { faker } from '@faker-js/faker';
 import { createUser } from '../Repo/users.repo.js';
 import { createProduct } from '../Repo/products.repo.js';
 import { createOrder } from '../Repo/orders.repo.js';
-import { db } from './db.js';
+import { db, initializeDatabase } from './db.js';
 
 function randomStatus(list) {
     return list[Math.floor(Math.random() * list.length)];
 }
 
 async function seed() {
+    initializeDatabase();
     // Clear tables except admin
     db.prepare('DELETE FROM orders').run();
     db.prepare('DELETE FROM products').run();
@@ -19,8 +20,13 @@ async function seed() {
     for (let i = 0; i < 50; i++) {
         const name = faker.person.fullName();
         const email = faker.internet.email();
+        const phone = faker.phone.number();
+        const address = faker.location.streetAddress();
+        const zip_code = faker.location.zipCode();
+        const registration_date = faker.date.past().toISOString().split('T')[0];
+        const status = randomStatus(['active', 'inactive']);
         const role = 'customer';
-        const id = createUser({ name, email, role });
+        const id = createUser({ name, email, role, phone, address, zip_code, registration_date, status });
         userIds.push({ id, email });
     }
 

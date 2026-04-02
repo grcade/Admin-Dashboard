@@ -89,13 +89,14 @@ const customerSlice = createSlice({
 
         setLoading: (state) =>  state.loading = !state.loading,
         searchCustomers: (state, action) => {
+            const { customers, searchTerm } = action.payload;
+            const term = searchTerm.toLowerCase();
 
-
-            const {Name = '', Email = ''}= action.payload
-
-            state.searchResult = state.customers.filter((customer) => customer.Name.toLowerCase().includes( Name.toLowerCase()) || customer.Email.toLowerCase().includes(Email.toLowerCase())
-        )
-          },
+            state.searchResult = customers.filter((customer) => 
+                customer.name.toLowerCase().includes(term) || 
+                customer.email.toLowerCase().includes(term)
+            );
+        },
 
          resetSearch: (state) => state.searchResult = [],
     }

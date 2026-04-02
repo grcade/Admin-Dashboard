@@ -12,15 +12,15 @@ export function getUserByEmail(email) {
     return db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 }
 
-export function createUser({ name, email, role }) {
-    const stmt = db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)');
-    const info = stmt.run(name, email, role);
+export function createUser({ name, email, role, phone, address, zip_code, registration_date, status, total_orders = 0, total_amount_spent = 0 }) {
+    const stmt = db.prepare('INSERT INTO users (name, email, role, phone, address, zip_code, registration_date, status, total_orders, total_amount_spent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    const info = stmt.run(name, email, role, phone, address, zip_code, registration_date, status, total_orders, total_amount_spent);
     return info.lastInsertRowid;
 }
 
-export function updateUser(id, { name, email, role }) {
-    const stmt = db.prepare('UPDATE users SET name=?, email=?, role=? WHERE id=?');
-    return stmt.run(name, email, role, id).changes;
+export function updateUser(id, { name, email, role, phone, address, zip_code, registration_date, status, total_orders, total_amount_spent }) {
+    const stmt = db.prepare('UPDATE users SET name=?, email=?, role=?, phone=?, address=?, zip_code=?, registration_date=?, status=?, total_orders=?, total_amount_spent=? WHERE id=?');
+    return stmt.run(name, email, role, phone, address, zip_code, registration_date, status, total_orders, total_amount_spent, id).changes;
 }
 
 export function deleteUser(id) {

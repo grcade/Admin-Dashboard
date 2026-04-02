@@ -1,29 +1,38 @@
 
 import { useState } from "react";
-import { searchCustomers, resetSearch } from "../store/features/customerSlice";
+import { searchCustomers } from "../store/features/customerSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { CustDetails } from "../components/index";
+import { CustDetails, PaginationBar } from "../components/index";
 import { Search } from "lucide-react";
-
-
+import { useGetCustomersQuery } from "../store/dashboardApi";
 
 function Customer() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  // API returns { data, total }
+  const { data: customersResponse } = useGetCustomersQuery({ page: currentPage, limit: itemsPerPage });
+  const customers = customersResponse?.data || [];
+    console.log("Customers API response:", customersResponse);
+  const totalItems = customersResponse?.totalCustomers.count || customers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const { searchResult } = useSelector((state) => state.customer);
+  const dispatch = useDispatch();
+  const [showDetail, setShowDetail] = useState(false);
+  const [customerDetails, setCustomerDetail] = useState(null);
 
-    const {customers, searchResult} = useSelector((state) => state.customer)
-    const dispatch = useDispatch();
-
-    const [showDetail, setShowDetail] = useState(false)
-    const [customerDetails, setCustomerDetail] = useState(null)
-
-
-    const CustomerData = searchResult.length > 0 ? searchResult : customers
+  // If searching, paginate on frontend, else use API paginated data
+  const CustomerData = searchResult.length > 0 ? searchResult : customers;
+  const paginatedData = searchResult.length > 0
+    ? searchResult : customers;
 
     const handleSearch = (e) => {
-        dispatch(searchCustomers({
-          Name: e.target.value,
-          Email: e.target.value
-        }))
-      }
+        if (customers) {
+            dispatch(searchCustomers({
+                customers,
+                searchTerm: e.target.value
+            }));
+        }
+    };
     return (
         <div className="p-6">
         {/* Top section */}
@@ -65,19 +74,19 @@ function Customer() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300">
-              {CustomerData.map((product) => (
-                <tr key={product.Email} className="hover:bg-slate-100">
-                  <td className="border border-gray-300 px-4 py-2">{product.Name}</td>
-                  <td className="border border-gray-300 px-4 py-2">{product.Email}</td>
-                  <td className="border border-gray-300 px-4 py-2">{product.TotalOrders}</td>
-                  <td className="border border-gray-300 px-4 py-2">{product.TotalSpent}</td>
-                  <td className="border border-gray-300 px-4 py-2">{product.JoinDate}</td>
+              {paginatedData.map((customer) => (
+                <tr key={customer.email} className="hover:bg-slate-100">
+                  <td className="border border-gray-300 px-4 py-2">{customer.name}</td>
+                  <td className="border border-gray-300 px-4 py-2">{customer.email}</td>
+                  <td className="border border-gray-300 px-4 py-2">{customer.total_orders}</td>
+                  <td className="border border-gray-300 px-4 py-2">${customer.total_amount_spent}</td>
+                  <td className="border border-gray-300 px-4 py-2">{customer.registration_date}</td>
                   <td className="border border-gray-300 px-4 py-2 ">
                     <div className="flex space-x-6">
                       <button
                         className=" hover:font-medium "
                         onClick={() => {setShowDetail(true)
-                            setCustomerDetail(product)
+                            setCustomerDetail(customer)
                         } }
                       >
                      Details
@@ -90,6 +99,15 @@ function Customer() {
             </tbody>
           </table>
         </div>
+        {/* Pagination Bar */}
+        <div className="flex justify-center my-4">
+          <PaginationBar
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+
         {showDetail && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full">

@@ -62,16 +62,16 @@ const productSlice = createSlice({
 
 
 
-        addProduct: ( state, action) => {
+        addProduct: (state, action) => {
 
-            state.products.push( action.payload)
+            state.products.push(action.payload)
         },
 
         deleteProduct: (state, action) => {
             try {
                 state.error = ""
-                state.products=  state.products.filter((product) => (
-                    product.id !== action.payload  ))
+                state.products = state.products.filter((product) => (
+                    product.id !== action.payload))
             } catch (error) {
                 state.error = error.message;
 
@@ -86,10 +86,13 @@ const productSlice = createSlice({
             );
         },
 
+
         updateFilters: (state, action) => {
-
             state.filters = { ...state.filters, ...action.payload }
+        },
 
+        setProducts: (state, action) => {
+            state.products = action.payload;
         },
 
 
@@ -97,7 +100,7 @@ const productSlice = createSlice({
         setFilters: (state) => {
 
             console.log("Filters Applied:", state.filters);
-            console.log("Products Before Filter:", state.products);
+
             state.filteredProducts = [];
             state.filteredProducts = state.products.filter(
                 (product) =>
@@ -113,6 +116,6 @@ const productSlice = createSlice({
 })
 
 
-export const { setFilters, updateProduct, updateFilters, deleteProduct, addProduct} = productSlice.actions
+export const { setFilters, updateProduct, updateFilters, deleteProduct, addProduct } = productSlice.actions
 
 export default productSlice.reducer;

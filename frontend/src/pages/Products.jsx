@@ -1,35 +1,67 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Filter, PenSquare, Plus, Trash2Icon } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { AddProductForm, FilterPanel } from "../components/index";
-import { deleteProduct, setFilters } from "../store/features/productSlice";
+import { AddProductForm, FilterPanel, PaginationBar } from "../components/index";
+import { useGetProductsQuery, useDeleteProductMutation } from "../store/dashboardApi";
+import { useSelector, useDispatch } from "react-redux";
 
 function Products() {
-  const { products, filteredProducts } = useSelector((state) => state.product);
-  const dispatch = useDispatch();
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    console.log('Products component rendered with currentPage:', currentPage);
+  // API returns { data, totalItems }
+        const { data: productsResponse, isLoading } = useGetProductsQuery({ page: currentPage, limit: itemsPerPage });
+const dispatch = useDispatch();
+const products = productsResponse?.data || [];
+
+// Set products in Redux after API call
+useEffect(() => {
+  if (products.length > 0) {
+    dispatch({ type: 'product/setProducts', payload: products });
+  }
+}, [products, dispatch]);
+
+const { filters, products: reduxProducts } = useSelector(state => state.product);
+
+// Memoize filtered products
+const filteredProducts = useMemo(() => {
+  return reduxProducts.filter(
+    (product) =>
+      (filters.category === "all" || product.category === filters.category) &&
+      (filters.status === "all" || product.status === filters.status)
+  );
+}, [reduxProducts, filters]);
+
+const totalItems = productsResponse?.total || products.length;
+
+  const [deleteProduct] = useDeleteProductMutation();
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-
-
-
-  useEffect(() => {
-
-    dispatch(setFilters());
-  }, [dispatch]);
 
   const handleEdit = (product) => {
     setEditingProduct(product);
     setShowAddForm(true);
   };
 
-  const handleDelete = (productId) => {
+  const handleDelete = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      dispatch(deleteProduct(productId));
+      try {
+        await deleteProduct(productId).unwrap();
+      } catch (err) {
+        console.error('Failed to delete product:', err);
+        alert('Failed to delete product');
+      }
     }
   };
 
-  const dataSource = filteredProducts
+
+  // Pagination state
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  console.log(filteredProducts)
+  const paginatedProducts = filteredProducts.length > 0 ? filteredProducts : products;
+
+  if (isLoading) return <div className="p-6">Loading products...</div>;
 
   return (
     <div className="p-6">
@@ -44,7 +76,10 @@ function Products() {
             Filter <Filter />
           </button>
           <button
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              setEditingProduct(null);
+              setShowAddForm(true);
+            }}
             className="bg-blue-200 hover:bg-blue-300 flex p-2 rounded-md"
           >
             <Plus /> Add Product
@@ -68,13 +103,17 @@ function Products() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-300">
-            {dataSource.map((product) => (
+            {paginatedProducts.map((product) => (
               <tr key={product.id} className="hover:bg-slate-100">
                 <td className="border border-gray-300 px-4 py-2">{product.name}</td>
-                <td className="border border-gray-300 px-4 py-2">{product.price}</td>
+                <td className="border border-gray-300 px-4 py-2">${product.price}</td>
                 <td className="border border-gray-300 px-4 py-2">{product.stock}</td>
                 <td className="border border-gray-300 px-4 py-2">{product.category}</td>
-                <td className="border border-gray-300 px-4 py-2">{product.status}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                   <span className={`px-2 py-1 rounded-full text-xs ${product.status === 'in stock' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {product.status}
+                  </span>
+                </td>
                 <td className="border border-gray-300 px-4 py-2">
                   <div className="flex space-x-6">
                     <button
@@ -95,6 +134,15 @@ function Products() {
             ))}
           </tbody>
         </table>
+
+      {/* Pagination Bar */}
+      <div className="flex justify-center my-4">
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
       </div>
 
       {showAddForm && (
